@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Simplest BFF</title></head>
+<body><a href="/login">Log in</a></body>
+<script>
+  async function checkLoggedIn() {
+    const response = await fetch('/getUser');
+    if (!response.ok) return;
+    const username = await response.text();
+    if (!username) return;
+    document.body.appendChild(Object.assign(document.createElement('p'), { textContent: `Logged in as: ${username}` }));
+  }
+  checkLoggedIn();
+</script>
+</html>
