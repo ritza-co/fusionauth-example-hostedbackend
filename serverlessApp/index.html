@@ -2,6 +2,7 @@
 <html>
 <head><title>Hosted backend app</title></head>
 <body><a href="#" id="loginLink">Log in</a></body>
+<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 <script>
   const AUTH_URL="http://localhost:9011/app/login/E9FDB985-9173-4E01-9D73-AC2D60D1DC8E";
   const AUTH_CALLBACK_URL="http://localhost:3000/auth/callback"
@@ -9,7 +10,7 @@
   function setupLogin() {
     const state = Math.random().toString(36).substring(2, 15);
     localStorage.setItem('auth_state', state);
-    const authorizeUrl = AUTH_URL + `?redirect_uri=${encodeURIComponent(AUTH_CALLBACK_URL)}&state=${state}&scope=openid`;
+    const authorizeUrl = AUTH_URL + `?redirect_uri=${encodeURIComponent(AUTH_CALLBACK_URL)}&state=${state}&scope=openid%20email`;
     document.getElementById('loginLink').addEventListener('click', function(event) {
       event.preventDefault();
       window.location.href = authorizeUrl;
@@ -24,14 +25,28 @@
     localStorage.removeItem('auth_state');
     if (callbackState != storedState)
       return alert("State check returned from authentication server does not match saved state");
-    // ERROR - app.idt cookie missing, despite requesting openid scope - https://fusionauth.io/docs/apis/hosted-backend#request
-    const response = await fetch('http://fa:9011/app/me');
-    // ERROR /app/me url not found, despite being in docs - https://fusionauth.io/docs/apis/hosted-backend#me
-    const data = await response.json();
-    console.log(data);
+    if (!getToken())
+      return alert("app.idt cookie not found");
     window.location.href = 'http://localhost:3000';
   }
 
+  function displayEmail() {
+    const jwt = getToken();
+    if (!jwt) return;
+    const email = jwt_decode(jwt).email;
+    document.body.appendChild(Object.assign(document.createElement('p'), { textContent: `Logged in as: ${email}` }));
+  }
+
+  function getToken() {
+    const cookies = document.cookie.split(';');
+    let jwt = null;
+    for(let i = 0; i < cookies.length && !jwt; i++)
+      if (cookies[i].trim().startsWith('app.idt='))
+        jwt = cookies[i].trim().substring('app.idt='.length + 1);
+    return jwt;
+  }
+
+  displayEmail();
   if (window.location.pathname == '/auth/callback')
     handleCallback();
   else
