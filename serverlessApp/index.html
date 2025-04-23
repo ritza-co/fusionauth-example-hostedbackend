@@ -10,7 +10,7 @@
   function setupLogin() {
     const state = Math.random().toString(36).substring(2, 15);
     localStorage.setItem('auth_state', state);
-    const authorizeUrl = AUTH_URL + `?redirect_uri=${encodeURIComponent(AUTH_CALLBACK_URL)}&state=${state}&scope=openid%20email`;
+    const authorizeUrl = AUTH_URL + `?redirect_uri=${encodeURIComponent(AUTH_CALLBACK_URL)}&state=${state}&scope=openid`;
     document.getElementById('loginLink').addEventListener('click', function(event) {
       event.preventDefault();
       window.location.href = authorizeUrl;
